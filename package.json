@@ -26,7 +26,8 @@
     "grunt-istanbul": "~0.3.0",
     "grunt-contrib-less": "~0.11.4",
     "grunt-jsdoc": "~0.5.7",
-    "ink-docstrap": "~0.4.12"
+    "ink-docstrap": "~0.4.12",
+    "sqlite3": "~2.2.7"
   },
   "dependencies": {}
 }
