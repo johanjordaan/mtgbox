@@ -64,16 +64,24 @@ module.exports = (grunt) ->
         srcPrefix: 'bower_components'
       scripts:
         options:
-           destPrefix: 'site/client/libs'
+          destPrefix: 'site/client/libs'
         files:
-           'angular/angular.js': 'angular/angular.min.js'
-           'angular/angular-route.js': 'angular-route/angular-route.min.js'
-           'angular/angular-resource.js': 'angular-resource/angular-resource.min.js'
-           'prelude-browser.js': 'prelude-ls/browser/prelude-browser.js'
+          'angular/angular.js': 'angular/angular.min.js'
+          'angular/angular-route.js': 'angular-route/angular-route.min.js'
+          'angular/angular-resource.js': 'angular-resource/angular-resource.min.js'
+          'prelude-browser.js': 'prelude-ls/browser/prelude-browser.js'
 
-           'bootstrap/bootstrap.css': 'bootstrap/dist/css/bootstrap.min.css'
-           'bootstrap/bootstrap.js': 'bootstrap/dist/js/bootstrap.min.js'
-           'jquery.js': 'jquery/dist/jquery.js'
+          'bootstrap/bootstrap.css': 'bootstrap/dist/css/bootstrap.min.css'
+          'bootstrap/bootstrap.js': 'bootstrap/dist/js/bootstrap.min.js'
+          'jquery.js': 'jquery/dist/jquery.js'
+
+          # This has been added to avoid the browser error
+          #
+          'angular/angular.min.js.map': 'angular/angular.min.js.map'
+          'angular/angular-route.min.js.map': 'angular-route/angular-route.min.js.map'
+          'angular/angular-resource.min.js.map': 'angular-resource/angular-resource.min.js.map'
+          'jquery.min.map': 'jquery/dist/jquery.min.map'
+
 
     mochaTest:
       test:
