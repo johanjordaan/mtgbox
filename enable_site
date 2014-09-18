@@ -1,0 +1,4 @@
+cd /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-enabled/mtgbox.abicat.com/nginx.conf mtgbox.abicat.com
+nginx -s stop
+nginx
