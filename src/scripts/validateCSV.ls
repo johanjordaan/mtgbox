@@ -16,8 +16,17 @@ validateItem = (setName,cardName,cb) ->
     | err? => console.log err
     | !set? =>
       console.log "Cannot find set : [#{setName}]"
-      cb(err,null)
-    | otherwise => cb(null,null)
+      cb(true,null)
+    | otherwise =>
+      db.cards.findItems { name:cardName, setName:setName}, (err,cards) ->
+        | err? => console.log err
+        | !cards? =>
+          console.log "Cannot find card : [#{cardName}]"
+          cb(true,null)
+        | otherwise =>
+          if cards.length>1
+            console.log "[#{cardName}]-[#{setName}] has [#{cards.length}] versions..."
+          cb(null,null)
 
 validations = []
 fs.readFile "./data/takeon.csv",'utf8',(err,data) ->
@@ -31,7 +40,7 @@ fs.readFile "./data/takeon.csv",'utf8',(err,data) ->
         validations.push (cb) ->
           validateItem tokens[1], tokens[2], cb
 
-    async.series validations, (err,results) ->
+    async.parallel validations, (err,results) ->
       | err? => console.log err
       | otherwise =>
       db.close!
