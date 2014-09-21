@@ -1,12 +1,13 @@
 _ = require 'prelude-ls'
 fs  = require 'fs'
+config = require '../config'
 
 mongo = require('mongoskin')
 ObjectID = require('mongoskin').ObjectID
-db_name = "mongodb://localhost/mtgbox"
-db = mongo.db db_name, {native_parser:true}
-db.bind 'cards'
-db.bind 'sets'
+
+db = mongo.db config.database.connectionString, {native_parser:true}
+for binding in config.database.bindings
+  db.bind binding
 
 async = require 'async'
 

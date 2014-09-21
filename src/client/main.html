@@ -1,0 +1,42 @@
+<div class="contents">
+  <div ng-show="!isReady()">
+    Loading data ...
+  </div>
+
+
+
+  <div ng-show="isReady()">
+    {{totalCards}}
+    <br>
+    <input class="form-control" type="text" ng-model="filter" ng-focus='clearFilter()'>
+
+    <div ng-repeat="card in filteredCards" class="row">
+      <div class="col-md-1">
+        <div class="btn-group">
+          <button type="button" class="btn btn-xs btn-default" ng-click="incCount(card.multiverseid)">+</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="decCount(card.multiverseid)">-</button>
+        </div>
+        {{ card.count || 0 }}
+      </div>
+
+      <div class="col-md-1">
+        <div class="btn-group">
+          <button type="button" class="btn btn-xs btn-default" ng-click="incFCount(card.multiverseid)">+</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="decFCount(card.multiverseid)">-</button>
+        </div>
+        {{ card.fcount || 0 }}
+      </div>
+
+      <div class="col-md-2">
+        {{card.name}}
+      </div>
+
+      <div class="col-md-3">
+        <img src="http://mtgimage.com/actual/symbol/set/{{card.setCode.toLowerCase()}}/c/24.gif"></img>
+        {{card.setName }}
+      </div>
+
+    </div>
+
+  </div>
+</div>

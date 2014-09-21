@@ -37,7 +37,7 @@ module.exports = (grunt) ->
            logConcurrentOutput: true
 
     nodemon:
-      apiServer:
+      server:
         script: 'site/server.js'
         options:
            pwd: 'site'
@@ -142,7 +142,7 @@ module.exports = (grunt) ->
 
 
 
-  grunt.registerTask 'apimon',  ['default' 'concurrent:api']
+  grunt.registerTask 'run',  ['default' 'concurrent:server']
   grunt.registerTask 'default', ['deadscript' 'less:all' 'copy:all' 'bowercopy']
 
   grunt.registerTask 'docs', ['deadscript' 'jsdoc']

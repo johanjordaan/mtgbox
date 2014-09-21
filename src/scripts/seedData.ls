@@ -29,6 +29,7 @@ saveCard = (card,set,cb) ->
   if card.power? then card.pt = "#{card.power}/#{card.toughness}"
   if card.colors? then card.color = _.join " ",card.colors
   card.setCode = set.code
+  card.setName = set.name
 
   db.cards.save card, (err) ->
     | err? => cb(err,card.name)
