@@ -6,7 +6,32 @@ errorController = ($scope,Errors) ->
   $scope.clear = ->
     Errors.length = 0
 
-mainController = ($scope,Errors,Api) ->
+menuController = ($scope) ->
+  $scope.menuItems = [
+    { label: 'home'       ,path: '/'          ,require_auth: false }
+    { label: 'capture'    ,path: '/capture'   ,require_auth: false }
+    { label: 'explore'    ,path: '/explore'   ,require_auth: false }
+  ]
+
+menuItemController = ($scope,$location) ->
+  $scope.select = ->
+    $location.path "#{$scope.menuItem.path}"
+
+  $scope.isSelected = ->
+    return "#{$scope.menuItem.path}" == $location.path()
+
+  $scope.isAuthed = ->
+    true
+    #if !$scope.menu_item.require_auth
+    #  return true
+    #else
+    #  return auth.authenticated
+
+
+homeController = ($scope,Errors,Api) ->
+
+
+captureController = ($scope,Errors,Api) ->
   $scope.ready = false
 
   $scope.totalCards = 0
@@ -31,7 +56,6 @@ mainController = ($scope,Errors,Api) ->
   $scope.filter = ''
   $scope.filteredCards = [{name:'...'}]
   $scope.$watch 'filter', (oldValue,newValue) ->
-    console.log $scope.filter
     if $scope.cards? and $scope.filter.length>2
       $scope.filteredCards = $scope.cards |> _.filter (card) ->
         card.name.toLowerCase().indexOf($scope.filter.toLowerCase()) == 0
@@ -46,6 +70,8 @@ mainController = ($scope,Errors,Api) ->
 
 
   $scope.updateCount = (multiverseid,delta,foil) ->
+
+
     Api.updateCollection { multiverseid: multiverseid, delta:delta, fdelta:fdelta }, ->
       if !$scope.cardsByMultiverseid[multiverseid].count?
         $scope.cardsByMultiverseid[multiverseid].count = 0
@@ -77,6 +103,8 @@ mainController = ($scope,Errors,Api) ->
       $scope.cardsByMultiverseid[multiverseid].count += -1
 
 
+exploreController = ($scope,Errors,Api) ->
+
 
 apiFactory = ($resource,ErrorHandler) ->
   do
@@ -100,8 +128,16 @@ errorHandlerFactory = (Errors) ->
 config = ($routeProvider) ->
   $routeProvider
   .when '/home', do
-    templateUrl: 'main.html'
-    controller: 'mainController'
+    templateUrl: 'home.html'
+    controller: 'homeController'
+
+  .when '/capture', do
+    templateUrl: 'capture.html'
+    controller: 'captureController'
+
+  .when '/explore', do
+    templateUrl: 'explore.html'
+    controller: 'exploreController'
 
   .otherwise do
     redirectTo: '/home'
@@ -113,8 +149,14 @@ app.factory 'Api',['$resource','ErrorHandler',apiFactory]
 app.factory 'ErrorHandler',['Errors',errorHandlerFactory]
 app.value 'Errors',[]
 
+app.controller 'menuController', ['$scope',menuController]
+app.controller 'menuItemController', ['$scope','$location',menuItemController]
 app.controller 'errorController', ['$scope','Errors',errorController]
 
-app.controller 'mainController', ['$scope','Errors','Api',mainController]
+
+app.controller 'homeController', ['$scope','Errors','Api',homeController]
+app.controller 'captureController', ['$scope','Errors','Api',captureController]
+app.controller 'exploreController', ['$scope','Errors','Api',exploreController]
+
 
 app.config ['$routeProvider',config]

@@ -4,3 +4,5 @@ site/
 logs/
 coverage/
 docs/
+
+src/sconfig.ls

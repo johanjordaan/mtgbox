@@ -1,15 +1,21 @@
 fs = require 'fs'
 async = require 'async'
 _ = require 'prelude-ls'
+crypto = require 'crypto'
+request = require 'request'
+
 
 express = require 'express'
 bodyParser = require 'body-parser'
+cookieParser = require 'cookie-parser'
 app = express()
 
 config = require './config'
+sconfig = require './sconfig'
 
 
 # Configure express
+app.use cookieParser('xxx')
 app.use bodyParser.json()
 app.use '/',express.static(__dirname + '/client')
 
@@ -66,3 +72,42 @@ app.post '/api/v1/collections/', (req, res) ->
       , (err,) ->
         | err? => res.status(500).send { message: err }
         | otherwise => res.status(200).send ''
+
+
+
+
+auth = (req,res,next) ->
+  key = "fbsr_#{sconfig.facebook.clientId}"
+  cookie = req.cookies[key]
+  parts = cookie.split('.')
+  signature = parts[0]
+  jsonData = JSON.parse(new Buffer(parts[1],'base64').toString())
+  computedSignature = crypto
+    .createHmac('SHA256', sconfig.facebook.clientSecret)
+    .update(parts[1])
+    .digest('base64')
+    .replace('=','')
+    .replace('/', '_')
+    .replace('+', '-')
+
+  switch computedSignature == signature
+  | false => res.status(401).send { message: "User not autherised"}
+  | otherwise =>
+    db.users.findAndModify { facebookId: jsonData.user_id }
+    , []
+    , { facebookId: jsonData.user_id }
+    , { new:true , upsert:true }
+    , (err,user) ->
+      | err? => res.status(500).send err
+      | otherwise =>
+        req.user = user
+        next!
+
+
+app.post '/api/v1/authenticate',auth, (req, res) ->
+  console.log req.user
+
+
+
+
+  res.status(200).send "OK"

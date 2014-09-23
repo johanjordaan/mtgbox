@@ -27,7 +27,8 @@
     "grunt-contrib-less": "~0.11.4",
     "grunt-jsdoc": "~0.5.7",
     "ink-docstrap": "~0.4.12",
-    "sqlite3": "~2.2.7"
+    "sqlite3": "~2.2.7",
+    "request": "~2.44.0"
   },
   "dependencies": {}
 }
