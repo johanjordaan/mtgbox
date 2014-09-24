@@ -3,6 +3,7 @@ async = require 'async'
 _ = require 'prelude-ls'
 crypto = require 'crypto'
 request = require 'request'
+querystring = require 'querystring'
 
 
 express = require 'express'
@@ -27,6 +28,12 @@ ObjectID = require('mongoskin').ObjectID
 db = mongo.db config.database.connectionString, {native_parser:true}
 for binding in config.database.bindings
   db.bind binding
+
+## Get the facbook access token
+accessToken = ''
+request "https://graph.facebook.com/oauth/access_token?client_id=#{sconfig.facebook.clientId}&client_secret=#{sconfig.facebook.clientSecret}&grant_type=client_credentials"
+, (err, fbRes, body) ->
+  accessToken := querystring.parse(body).access_token
 
 
 server.listen config.port, ->
@@ -79,35 +86,41 @@ app.post '/api/v1/collections/', (req, res) ->
 auth = (req,res,next) ->
   key = "fbsr_#{sconfig.facebook.clientId}"
   cookie = req.cookies[key]
-  parts = cookie.split('.')
-  signature = parts[0]
-  jsonData = JSON.parse(new Buffer(parts[1],'base64').toString())
-  computedSignature = crypto
-    .createHmac('SHA256', sconfig.facebook.clientSecret)
-    .update(parts[1])
-    .digest('base64')
-    .replace('=','')
-    .replace('/', '_')
-    .replace('+', '-')
-
-  switch computedSignature == signature
+  switch cookie?
   | false => res.status(401).send { message: "User not autherised"}
   | otherwise =>
-    db.users.findAndModify { facebookId: jsonData.user_id }
-    , []
-    , { facebookId: jsonData.user_id }
-    , { new:true , upsert:true }
-    , (err,user) ->
-      | err? => res.status(500).send err
-      | otherwise =>
-        req.user = user
-        next!
+    parts = cookie.split('.')
+    signature = parts[0]
+    jsonData = JSON.parse(new Buffer(parts[1],'base64').toString())
+    computedSignature = crypto
+      .createHmac('SHA256', sconfig.facebook.clientSecret)
+      .update(parts[1])
+      .digest('base64')
+      .replace(/[=]/g,'')
+      .replace(/[/]/g, '_')
+      .replace(/[+]/g, '-')
+
+    switch computedSignature == signature
+    | false => res.status(401).send { message: "User not autherised"}
+    | otherwise =>
+      db.users.findOne { facebookId: jsonData.user_id }, (err,user) ->
+        | err? => res.status(500).send err
+        | user? =>
+          req.user = user
+          next!
+        | otherwise =>
+          request "https://graph.facebook.com/v2.1/#{jsonData.user_id}?access_token=#{accessToken}"
+          , (err, fbRes, body) ->
+            ##{"id":"10153627538842619","email":"djjordaan\u0040gmail.com","first_name":"Johan","gender":"male","last_name":"Jordaan","link":"https:\/\/www.facebook.com\/app_scoped_user_id\/10153627538842619\/","locale":"en_US","name":"Johan Jordaan"}
+            details = JSON.parse(body)
+            user = { facebookId: jsonData.user_id, firstName: details.first_name, surname: details.last_name, name: details.name, email: details.email }
+            db.users.save user, (err) ->
+              | err? => res.status(500).send err
+              | otherwise =>
+                req.user = user
+                next!
 
 
 app.post '/api/v1/authenticate',auth, (req, res) ->
   console.log req.user
-
-
-
-
-  res.status(200).send "OK"
+  res.status(200).send req.user

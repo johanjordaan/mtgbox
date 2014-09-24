@@ -13,97 +13,22 @@
     <script src="libs/angular/angular-resource.js"></script>
     <script src="libs/bootstrap/bootstrap.js"></script>
 
+
+    <script src="ngFacebook.js"></script>
     <script src="client.js"></script>
 
     <link rel="stylesheet" href="client.css">
     <link rel="stylesheet" href="libs/bootstrap/bootstrap.css">
 
-
-    <script>
-    function statusChangeCallback(response) {
-    console.log('statusChangeCallback');
-    console.log(response);
-    // The response object is returned with a status field that lets the
-    // app know the current login status of the person.
-    // Full docs on the response object can be found in the documentation
-    // for FB.getLoginStatus().
-    if (response.status === 'connected') {
-      // Logged into your app and Facebook.
-      testAPI();
-    } else if (response.status === 'not_authorized') {
-      // The person is logged into Facebook, but not your app.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into this app.';
-    } else {
-      // The person is not logged into Facebook, so we're not sure if
-      // they are logged into this app or not.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into Facebook.';
-    }
-  }
-
-  // This function is called when someone finishes with the Login
-  // Button.  See the onlogin handler attached to it in the sample
-  // code below.
-  function checkLoginState() {
-    FB.getLoginStatus(function(response) {
-      statusChangeCallback(response);
-    });
-  }
-
-
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId      : '1477312675868236',
-          cookie     : true,
-          xfbml      : true,
-          version    : 'v2.1'
-        });
-
-        FB.getLoginStatus(function(response) {
-          statusChangeCallback(response);
-        });
-      };
-
-      (function(d, s, id){
-         var js, fjs = d.getElementsByTagName(s)[0];
-         if (d.getElementById(id)) {return;}
-         js = d.createElement(s); js.id = id;
-         js.src = "//connect.facebook.net/en_US/sdk.js";
-         fjs.parentNode.insertBefore(js, fjs);
-       }(document, 'script', 'facebook-jssdk'));
-
-function testAPI() {
-console.log('Welcome!  Fetching your information.... ');
-FB.api('/me', function(response) {
-console.log('Successful login for: ' + response.name);
-//document.getElementById('status').innerHTML =
-//  'Thanks for logging in, ' + response.name + '!';
-});
-};
-
-
-    </script>
-
-
   </head>
   <body>
 
-    <div
-      class="fb-like"
-      data-share="true"
-      data-width="450"
-      data-show-faces="true">
-    </div>
-
-<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-</fb:login-button>
-
-
+    <ng-facebook app-id='1477312675868236'></ng-facebook>
 
     <a href="https://github.com/johanjordaan/mtgbox"><img style="z-index:99;  position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
 
     <div ng-controller="menuController">
+
       <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -114,7 +39,7 @@ console.log('Successful login for: ' + response.name);
               <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="#">MtGBox</a>
-            <span class="navbar-text">...</span>
+            <span class="navbar-text">... digital box of cards ...</span>
           </div>
 
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -127,11 +52,27 @@ console.log('Successful login for: ' + response.name);
                   <a>{{menuItem.label}}</a>
               </li>
             </ul>
+            <span class="navbar-text navbar-right" style="width:100px">&nbsp</span>
+            <span ng-if="FBStatus.ready">
+              <span ng-if="FBStatus.loggedIn" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">{{FBStatus.name}}</a></span>
+              <span ng-if="!FBStatus.loggedIn" class="navbar-text navbar-right">
+                <a ng-click="login()" class="navbar-link">Login</a></span>
+            </span>
           </div>
         </div>
 
       </nav>
     </div>
+
+    <div  style="float: right;"
+          class="fb-like"
+          data-href="http://mtgbox.abicat.com"
+          data-layout="standard"
+          data-action="like"
+          data-show-faces="false"
+          data-share="true">
+    </div>
+
 
     <div ng-controller="errorController">
       <div ng-if="errors.length==0">&nbsp</div>
@@ -139,6 +80,11 @@ console.log('Successful login for: ' + response.name);
     </div>
 
     <div ng-view>
+    </div>
+
+
+    <div class="footer navbar-fixed-bottom">
+      ...
     </div>
 
   </body>

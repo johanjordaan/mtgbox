@@ -1,4 +1,4 @@
-_  = require 'prelude-ls'
+_ = require 'prelude-ls'
 
 errorController = ($scope,Errors) ->
   $scope.errors = Errors
@@ -6,14 +6,36 @@ errorController = ($scope,Errors) ->
   $scope.clear = ->
     Errors.length = 0
 
-menuController = ($scope) ->
+menuController = ($scope,FB,FBStatus) ->
   $scope.menuItems = [
-    { label: 'home'       ,path: '/'          ,require_auth: false }
-    { label: 'capture'    ,path: '/capture'   ,require_auth: false }
-    { label: 'explore'    ,path: '/explore'   ,require_auth: false }
+    { label: 'home'       ,path: '/'          ,requireAuth: false }
+    { label: 'capture'    ,path: '/capture'   ,requireAuth: true }
+    { label: 'explore'    ,path: '/explore'   ,requireAuth: true }
   ]
 
-menuItemController = ($scope,$location) ->
+  $scope.FBStatus = FBStatus
+
+  $scope.logout
+
+  $scope.login = ->
+    FB.login  (response) ->
+      FB.getLoginStatus (response) ->
+        switch response.status
+        | 'connected' =>
+          FBStatus.loggedIn = true
+          FB.api '/me', (response) ->
+            FBStatus.name = response.name
+            $scope.$apply!
+            console.log FBStatus
+        | otherwise =>
+          FBSTatus.loggedIn = false
+          FBStatus.name = ''
+          $scope.$apply!
+          console.log FBStatus
+
+    , { scope: 'public_profile,email' }
+
+menuItemController = ($scope,$location,FBStatus) ->
   $scope.select = ->
     $location.path "#{$scope.menuItem.path}"
 
@@ -21,14 +43,17 @@ menuItemController = ($scope,$location) ->
     return "#{$scope.menuItem.path}" == $location.path()
 
   $scope.isAuthed = ->
-    true
-    #if !$scope.menu_item.require_auth
-    #  return true
-    #else
-    #  return auth.authenticated
+    if !$scope.menuItem.requireAuth
+      true
+    else
+      FBStatus.loggedIn
 
 
-homeController = ($scope,Errors,Api) ->
+
+
+homeController = ($scope,FBStatus) ->
+  $scope.FBStatus = FBStatus
+
 
 
 captureController = ($scope,Errors,Api) ->
@@ -142,21 +167,19 @@ config = ($routeProvider) ->
   .otherwise do
     redirectTo: '/home'
 
-
-app = angular.module 'app',['ngResource','ngRoute']
+app = angular.module 'app',['ngResource','ngRoute','ngFacebook']
 
 app.factory 'Api',['$resource','ErrorHandler',apiFactory]
 app.factory 'ErrorHandler',['Errors',errorHandlerFactory]
 app.value 'Errors',[]
 
-app.controller 'menuController', ['$scope',menuController]
-app.controller 'menuItemController', ['$scope','$location',menuItemController]
+app.controller 'menuController', ['$scope','FB','FBStatus',menuController]
+app.controller 'menuItemController', ['$scope','$location','FBStatus',menuItemController]
 app.controller 'errorController', ['$scope','Errors',errorController]
 
 
-app.controller 'homeController', ['$scope','Errors','Api',homeController]
+app.controller 'homeController', ['$scope','FBStatus',homeController]
 app.controller 'captureController', ['$scope','Errors','Api',captureController]
 app.controller 'exploreController', ['$scope','Errors','Api',exploreController]
-
 
 app.config ['$routeProvider',config]

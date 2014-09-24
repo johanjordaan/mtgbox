@@ -1,1 +1,10 @@
-<i>Welcome ... </i>
+<div ng-if="!FBStatus.loggedIn">
+
+  <h3>welcome</h3>
+  <p>agdkjasdk amdnbklaj mDNKdb aMSD K,Abs amnsdBK,AJD Ansdbkabd asdb</p>
+
+</div>
+
+<div ng-if="FBStatus.loggedIn">
+  <i>Welcome ... {{ FBStatus.name }}, I hope you will enjoy yor staw with us.</i>
+</div>
