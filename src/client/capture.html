@@ -10,16 +10,16 @@
     <div ng-repeat="card in filteredCards" class="row">
       <div class="col-md-1">
         <div class="btn-group">
-          <button type="button" class="btn btn-xs btn-default" ng-click="incCount(card.multiverseid)">+</button>
-          <button type="button" class="btn btn-xs btn-default" ng-click="decCount(card.multiverseid)">-</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,1,0)">+</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,-1,0)">-</button>
         </div>
         {{ card.count || 0 }}
       </div>
 
       <div class="col-md-1">
         <div class="btn-group">
-          <button type="button" class="btn btn-xs btn-default" ng-click="incFCount(card.multiverseid)">+</button>
-          <button type="button" class="btn btn-xs btn-default" ng-click="decFCount(card.multiverseid)">-</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,0,1)">+</button>
+          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,0,-1)">-</button>
         </div>
         {{ card.fcount || 0 }}
       </div>
@@ -30,7 +30,7 @@
 
       <div class="col-md-3">
         <img src="http://mtgimage.com/actual/symbol/set/{{card.setCode.toLowerCase()}}/c/24.gif"></img>
-        {{card.setName }}
+        {{card.set.name }}
       </div>
 
     </div>

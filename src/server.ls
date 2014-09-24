@@ -39,51 +39,7 @@ request "https://graph.facebook.com/oauth/access_token?client_id=#{sconfig.faceb
 server.listen config.port, ->
   console.log "server [#{config.name}] listening on port - Listening on port [#{config.port}]"
 
-
-app.get '/api/v1/cards', (req,res) ->
-  db.cards.findItems {}, { _id:0 , name:1, setCode:1, setName:1, multiverseid:1 }, (err,cards) ->
-    | err? => res.status(500).send err
-    | otherwise => res.status(200).send cards
-
-app.get '/api/v1/sets', (req,res) ->
-  db.sets.findItems {},{_id:0, name:1, code:1}, (err,sets) ->
-    | err? => res.status(500).send err
-    | otherwise => res.status(200).send sets
-
-app.get '/api/v1/collections', (req, res) ->
-  user = 'johan'
-
-  db.collections.findItems { user:user }, { _id:0, user:0 } (err,cards) ->
-    | err? => res.status(500).send err
-    | otherwise => res.status(200).send cards
-
-
-app.post '/api/v1/collections/', (req, res) ->
-  user = 'johan'
-  multiverseid = req.body.multiverseid
-  delta = req.body.delta
-  if !delta? then delta = 0
-  fdelta = req.body.fdelta
-  if !fdelta? then fdelta = 0
-
-
-  console.log req.body
-
-  switch !cardMultiverseid?
-    | false => res.status(400).send { message:'multiverseid must be supplied' }
-    | otherwise =>
-
-      db.collections.update { multiverseid: multiverseid , user: user }
-      , { '$inc' : { count: delta, fcount: fdelta } }
-      , { upsert: true }
-      , (err,) ->
-        | err? => res.status(500).send { message: err }
-        | otherwise => res.status(200).send ''
-
-
-
-
-auth = (req,res,next) ->
+authFilter = (req,res,next) ->
   key = "fbsr_#{sconfig.facebook.clientId}"
   cookie = req.cookies[key]
   switch cookie?
@@ -117,10 +73,51 @@ auth = (req,res,next) ->
             db.users.save user, (err) ->
               | err? => res.status(500).send err
               | otherwise =>
-                req.user = user
-                next!
+                db.users.findOne user, (err,user) ->
+                  | err? => res.status(500).send err
+                  | otherwise =>
+                    req.user = user
+                    next!
 
 
-app.post '/api/v1/authenticate',auth, (req, res) ->
+app.get '/api/v1/sets', (req,res) ->
+  db.sets.findItems {},{_id:0, name:1, code:1}, (err,sets) ->
+    | err? => res.status(500).send err
+    | otherwise => res.status(200).send sets
+
+app.get '/api/v1/cards', (req,res) ->
+  db.cards.findItems {}, { _id:0 , name:1, setCode:1, mid:1 }, (err,cards) ->
+    | err? => res.status(500).send err
+    | otherwise => res.status(200).send cards
+
+app.get '/api/v1/collections', authFilter, (req, res) ->
+
+  db.collections.findItems { user: req.user._id }, { _id:0, user:0 } (err,cards) ->
+    | err? => res.status(500).send err
+    | otherwise => res.status(200).send cards
+
+
+app.post '/api/v1/collections/', authFilter, (req, res) ->
+  mid = req.body.mid
+  delta = req.body.delta
+  if !delta? then delta = 0
+  fdelta = req.body.fdelta
+  if !fdelta? then fdelta = 0
+
+  switch !cardMultiverseid?
+    | false => res.status(400).send { message:'multiverseid must be supplied' }
+    | otherwise =>
+
+      db.collections.update { mid: mid , user: req.user._id }
+      , { '$inc' : { count: delta, fcount: fdelta } }
+      , { upsert: true }
+      , (err,) ->
+        | err? => res.status(500).send { message: err }
+        | otherwise => res.status(200).send ''
+
+
+
+
+app.post '/api/v1/authenticate',authFilter, (req, res) ->
   console.log req.user
   res.status(200).send req.user
