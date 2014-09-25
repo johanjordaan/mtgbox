@@ -17,7 +17,7 @@ db.serialize ->
     | 'Ravnica City of Guilds' => row.setname = 'Ravnica: City of Guilds'
     | otherwise =>
 
-    rows += "#{count},#{row.setname},#{row.cardname},#{row.cnt},#{row.fcnt}\n"
+    rows += "\"#{count}\",\"#{row.setname}\",\"#{row.cardname}\",\"#{row.cnt}\",\"#{row.fcnt}\"\n"
 
 db.close ->
   fs.writeFile './data/takeon.csv',rows,'utf8',(err) ->

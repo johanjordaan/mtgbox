@@ -1,0 +1,40 @@
+<div class="contents">
+  <div ng-show="status == 'selecting'">
+    <input file type="file" ng-model="importFile">
+    <button class="btn btn-primary" ng-click="read()">Read</button>
+  </div>
+
+  <div ng-show="status == 'mapping'">
+    <button class="btn btn-primary" ng-click="mapAndValidate()">Map and Validate</button>
+    <table class="table table-condensed">
+      <tr>
+        <th ng-repeat="column in columns track by $index">
+          <select ng-model="columns[$index]" ng-options="item for item in lookup" ng-change="validateMapping($index)"></select>
+        </th>
+      </tr>
+      <tr ng-repeat="line in lines track by $index">
+        <td ng-repeat="cel in line track by $index">
+          {{cel}}
+        </td>
+      </tr>
+    </table>
+    <button class="btn btn-primary" ng-click="mapAndValidate()">Map and Validate</button>
+  </div>
+
+  <div ng-show="status == 'validating'">
+    <button class="btn btn-primary" ng-click="import()">Import</button>
+    <table class="table table-condensed">
+      <tr ng-repeat="line in errorLines track by $index">
+        <td ng-repeat="cel in line track by $index">
+          {{cel}}
+        </td>
+      </tr>
+    </table>
+    <button class="btn btn-primary" ng-click="import()">Import</button>
+  </div>
+
+  <div ng-show="status == 'done'">
+    Done ... Imported xxx cards.
+  </div>
+
+</div>

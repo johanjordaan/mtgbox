@@ -1,10 +1,13 @@
 <div class="contents">
+  <a href="#/import">Import</a>&nbsp;|&nbsp;<a href="#/export">Export</a>
+  <hr>
+
   <div ng-show="!isReady()">
     Loading data ...
   </div>
 
   <div ng-show="isReady()">
-    <br>
+
     <input class="form-control" type="text" ng-model="filter" ng-focus='clearFilter()'>
 
     <div ng-repeat="card in filteredCards" class="row">

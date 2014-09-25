@@ -17,7 +17,7 @@ sconfig = require './sconfig'
 
 # Configure express
 app.use cookieParser('xxx')
-app.use bodyParser.json()
+app.use bodyParser.json({limit:'5mb'})
 app.use '/',express.static(__dirname + '/client')
 
 server = (require 'http').createServer app
@@ -115,8 +115,12 @@ app.post '/api/v1/collections/', authFilter, (req, res) ->
         | err? => res.status(500).send { message: err }
         | otherwise => res.status(200).send ''
 
-
-
+app.post '/api/v1/collections/import', authFilter, (req, res) ->
+  switch req.body.data?
+  | false => res.status(400).send { message: 'data must be provided to import'}
+  | otherwise =>
+    console.log req.body.data
+    res.status(200).send { message: 'Imported...' }
 
 app.post '/api/v1/authenticate',authFilter, (req, res) ->
   console.log req.user
