@@ -8,7 +8,7 @@ errorController = ($scope,Errors) ->
 
 menuController = ($scope,FB,FBStatus) ->
   $scope.menuItems = [
-    { label: 'home'       ,path: '/'          ,requireAuth: false }
+    { label: 'home'       ,path: '/home'      ,requireAuth: false }
     { label: 'capture'    ,path: '/capture'   ,requireAuth: true }
     { label: 'explore'    ,path: '/explore'   ,requireAuth: true }
   ]
@@ -56,11 +56,13 @@ homeController = ($scope,FBStatus) ->
 captureController = ($scope,Errors,Api,Data) ->
   $scope.ready = false
 
-  Api.getCollection (collectionCards) ->
-    collectionCards |> _.each (card) ->
-      if Data.cardsByMultiverseid[card.mid]?
-        Data.cardsByMultiverseid[card.mid].count = card.count
-        Data.cardsByMultiverseid[card.mid].fcount = card.fcount
+
+  Data.allDataLoaded.then ->
+    Api.getCollection (collectionCards) ->
+      collectionCards |> _.each (card) ->
+        if Data.cardsByMultiverseid[card.mid]?
+          Data.cardsByMultiverseid[card.mid].count = card.count
+          Data.cardsByMultiverseid[card.mid].fcount = card.fcount
 
     $scope.ready = true
 
@@ -81,14 +83,18 @@ captureController = ($scope,Errors,Api,Data) ->
     $scope.ready
 
 
+  $scope._updateCount = (mid,countDefault,delta,fcountDefault,fdelta) ->
+    if !Data.cardsByMultiverseid[mid].count?
+      Data.cardsByMultiverseid[mid].count = 0
+    Data.cardsByMultiverseid[mid].count += delta
+    if !Data.cardsByMultiverseid[mid].fcount?
+      Data.cardsByMultiverseid[mid].fcount = 0
+    Data.cardsByMultiverseid[mid].fcount += fdelta
+
+
   $scope.updateCount = (mid,delta,fdelta) ->
     Api.updateCollection { mid: mid, delta:delta, fdelta:fdelta }, ->
-      if !Data.cardsByMultiverseid[mid].count?
-        Data.cardsByMultiverseid[mid].count = 0
-      Data.cardsByMultiverseid[mid].count += delta
-      if !Data.cardsByMultiverseid[mid].fcount?
-        Data.cardsByMultiverseid[mid].fcount = 0
-      Data.cardsByMultiverseid[mid].fcount += fdelta
+      $scope._updateCount mid,0,delta,0,fdelta
 
 
 exploreController = ($scope,Errors,Api) ->
@@ -118,7 +124,7 @@ errorHandlerFactory = (Errors) ->
   (err) ->
     Errors.push err.data.message
 
-dataFactory = (Api) ->
+dataFactory = ($http,$q) ->
   retVal = do
     sets: []
     setsByCode: {}
@@ -126,18 +132,27 @@ dataFactory = (Api) ->
     cardsByMultiverseid: {}
     loaded:false
 
-  Api.getSets (sets) ->
+
+  retVal.setsLoaded = $http.get '/api/v1/sets'
+  retVal.cardsLoaded = $http.get '/api/v1/cards'
+
+  retVal.allDataLoaded = $q.all [retVal.setsLoaded, retVal.cardsLoaded]
+  .then (responses) ->
+    sets = responses[0].data
+    cards = responses[1].data
+
     retVal.sets = sets
     for set in sets
       retVal.setsByCode[set.code] = set
 
-    Api.getCards (cards) ->
-      retVal.cards = cards
-      for card in cards
-        retVal.cardsByMultiverseid[card.mid] = card
-        card.set = retVal.setsByCode[card.setCode]
-
-      retVal.loaded = true
+    retVal.cards = cards
+    for card in cards
+      retVal.cardsByMultiverseid[card.mid] = card
+      card.set = retVal.setsByCode[card.setCode]
+  , (error) ->
+    console.log 'Some error ',error
+  , ->
+    retVal.loaded = true
 
   retVal
 
@@ -164,7 +179,7 @@ app = angular.module 'app',['ngResource','ngRoute','ngFacebook']
 
 app.factory 'Api',['$resource','ErrorHandler',apiFactory]
 app.factory 'ErrorHandler',['Errors',errorHandlerFactory]
-app.factory 'Data', ['Api',dataFactory]
+app.factory 'Data', ['$http','$q',dataFactory]
 
 app.value 'Errors',[]
 
