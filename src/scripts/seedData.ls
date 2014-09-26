@@ -32,9 +32,6 @@ saveCard = (card,set,cb) ->
   card.setName = set.name
   card.mid = card.multiverseid
 
-  card.name = card.name.replace /Æ/g, 'Ae'
-  .trim()
-
   db.cards.save card, (err) ->
     | err? => cb(err,card.name)
     | otherwise => cb(null,card.name)

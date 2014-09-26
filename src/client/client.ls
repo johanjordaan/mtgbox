@@ -73,7 +73,7 @@ captureController = ($scope,Errors,Api,Data) ->
     filter = $scope.filter.toLowerCase()
     if Data.cards? and $scope.filter.length>2
        Data.cards |> _.each (card) ->
-        switch card.name.toLowerCase().indexOf(filter) >= 0
+        switch card.searchName.indexOf(filter) >= 0
         | false =>
         | otherwise => $scope.filteredCards.push card
     else
@@ -223,6 +223,13 @@ dataFactory = ($http,$q) ->
     for card in cards
       retVal.cardsByMultiverseid[card.mid] = card
       card.set = retVal.setsByCode[card.setCode]
+      card.searchName = card.name
+      .replace /Æ/g, 'Ae'
+      .replace /é/g,'e'
+      .replace /à|â/g,'a'
+      .toLowerCase!
+      console.log card.searchName
+
   , (error) ->
     console.log 'Some error ',error
   , ->

@@ -17,6 +17,10 @@ db.serialize ->
     | 'Ravnica City of Guilds' => row.setname = 'Ravnica: City of Guilds'
     | otherwise =>
 
+
+    row.cardname = row.cardname.replace /D.?j.? Vu/, 'Déjà Vu'
+    row.cardname = row.cardname.replace /Dand.?n/, 'Dandân'
+
     rows += "\"#{count}\",\"#{row.setname}\",\"#{row.cardname}\",\"#{row.cnt}\",\"#{row.fcnt}\"\n"
 
 db.close ->
