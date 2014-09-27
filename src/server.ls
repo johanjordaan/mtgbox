@@ -90,11 +90,11 @@ app.get '/api/v1/cards', (req,res) ->
     | err? => res.status(500).send err
     | otherwise => res.status(200).send cards
 
-app.get '/api/v1/collections', authFilter, (req, res) ->
-
-  db.collections.findItems { user: req.user._id }, { _id:0, user:0 } (err,cards) ->
+app.get '/api/v1/collections/', authFilter, (req, res) ->
+  db.collections.findOne { user: req.user._id }, { _id:0, user:0 } (err,collection) ->
     | err? => res.status(500).send err
-    | otherwise => res.status(200).send cards
+    | !collection? => res.status(200).send []
+    | otherwise => res.status(200).send collection
 
 
 app.post '/api/v1/collections/', authFilter, (req, res) ->
@@ -108,19 +108,23 @@ app.post '/api/v1/collections/', authFilter, (req, res) ->
     | false => res.status(400).send { message:'multiverseid must be supplied' }
     | otherwise =>
 
-      db.collections.update { mid: mid , user: req.user._id }
-      , { '$inc' : { count: delta, fcount: fdelta } }
-      , { upsert: true }
-      , (err,) ->
+      db.collections.update { user: req.user._id, 'cards.mid': mid }
+      , { '$inc' : { 'cards.$.count': delta, 'cards.$.fcount': fdelta } }
+      , (err,writeResult) ->
         | err? => res.status(500).send { message: err }
-        | otherwise => res.status(200).send ''
+        | writeResult==0 =>
+          db.collections.update {user: }
+        | otherwise =>
+          console.log writeResult
+          res.status(200).send ''
+
 
 app.post '/api/v1/collections/import', authFilter, (req, res) ->
-  switch req.body.data?
+  switch req.body.cardsToImport
   | false => res.status(400).send { message: 'data must be provided to import'}
   | otherwise =>
-    console.log req.body.data
-    res.status(200).send { message: 'Imported...' }
+    db.collections.save { user: req.user._id, cards: req.body.cardsToImport }, (err) ->
+      res.status(200).send { message: 'Imported...' }
 
 app.post '/api/v1/authenticate',authFilter, (req, res) ->
   console.log req.user

@@ -12,13 +12,15 @@
     <script src="libs/angular/angular-route.js"></script>
     <script src="libs/angular/angular-resource.js"></script>
     <script src="libs/bootstrap/bootstrap.js"></script>
-
+    <script src="libs/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="libs/trnggrid/trnggrid.js"></script>
 
     <script src="ngFacebook.js"></script>
     <script src="client.js"></script>
 
     <link rel="stylesheet" href="client.css">
     <link rel="stylesheet" href="libs/bootstrap/bootstrap.css">
+    <link rel="stylesheet" href="libs/trnggrid/trnggrid.css">
 
   </head>
   <body>
@@ -51,7 +53,7 @@
                   <a>{{menuItem.label}}</a>
               </li>
             </ul>
-            <span class="navbar-text navbar-right" style="width:100px">&nbsp</span>
+            <span class="navbar-text navbar-right" style="width:100px">&nbsp;</span>
             <span ng-if="FBStatus.ready">
               <span ng-if="FBStatus.loggedIn" class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">{{FBStatus.name}}</a></span>
               <span ng-if="!FBStatus.loggedIn" class="navbar-text navbar-right">
@@ -74,7 +76,7 @@
 
 
     <div ng-controller="errorController">
-      <div ng-if="errors.length==0">&nbsp</div>
+      <div ng-if="errors.length==0">&nbsp;</div>
       <div ng-if="errors.length>0" class="warn">{{errors.join(';')}}</div>
     </div>
 

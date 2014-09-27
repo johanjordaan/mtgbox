@@ -46,29 +46,21 @@ menuItemController = ($scope,$location,FBStatus) ->
     else
       FBStatus.loggedIn
 
-
-
-
 homeController = ($scope,FBStatus) ->
   $scope.FBStatus = FBStatus
 
+captureController = ($scope,$timeout,Api,Data) ->
 
-captureController = ($scope,Errors,Api,Data) ->
+  # Capture
+  #
   $scope.ready = false
-
   Data.allDataLoaded.then ->
-    Api.getCollection (collectionCards) ->
-      collectionCards |> _.each (card) ->
-        if Data.cardsByMultiverseid[card.mid]?
-          Data.cardsByMultiverseid[card.mid].count = card.count
-          Data.cardsByMultiverseid[card.mid].fcount = card.fcount
-
     $scope.ready = true
 
-
   $scope.filter = ''
-  $scope.filteredCards = [{name:'...'}]
-  $scope.$watch 'filter', (oldValue,newValue) ->
+  $scope.filteredCards = []
+  $scope.timeout = null
+  $scope.updateList = ->
     $scope.filteredCards.length = 0
     filter = $scope.filter.toLowerCase()
     if Data.cards? and $scope.filter.length>2
@@ -78,9 +70,15 @@ captureController = ($scope,Errors,Api,Data) ->
         | otherwise => $scope.filteredCards.push card
     else
       $scope.filteredCards = []
+    $scope.timeout = null
+
+  $scope.$watch 'filter', (oldValue,newValue) ->
+    if $scope.timeout? then $timeout.cancel $scope.timeout
+    $scope.timeout = $timeout $scope.updateList,500
+
 
   $scope.clearFilter = ->
-    $scope.filter = ''
+    #$scope.filter = ''
 
   $scope.isReady = ->
     $scope.ready
@@ -102,10 +100,12 @@ captureController = ($scope,Errors,Api,Data) ->
 
 importController = ($scope,Api,Data) ->
   $scope.status = 'selecting'
-  $scope.lines = []
+  $scope.cardsToImport = []
+  $scope.errorLines = []
+  $scope.total = 0
+  $scope.ftotal = 0
 
   $scope.read = ->
-    $scope.lines.length = 0
     reader = new FileReader()
     reader.onload = (event) ->
       data = event.target.result
@@ -118,52 +118,33 @@ importController = ($scope,Api,Data) ->
           |> _.filter (item) ->
             item.length > 0
 
-          $scope.lines.push tokens
-      $scope.status = 'mapping'
+          # Find the card
+          #
+          name = tokens[2]
+          setName = tokens[1]
+          count = Number(tokens[3])
+          fcount = Number(tokens[4])
+          card = Data.cardsByName[name] |> _.find (card) -> card.set.name == setName
+          switch card?
+          | false => $scope.errorLines.push line
+          | otherwise =>
+            $scope.cardsToImport.push do
+              mid: card.mid
+              count: count
+              fcount: fcount
 
-      $scope.lookup = ['Card Name','Set Name','Count','Foil Count']
-      $scope.columns = []
-      for i to $scope.lines[0].length-1
-        $scope.columns.push ''
+            $scope.total += count
+            $scope.ftotal += fcount
 
+      $scope.status = 'validating'
       $scope.$apply!
-
-      #Api.importCollection { data: event.target.result }, (result) ->
-      #  console.log result
 
     reader.readAsText $scope.importFile
 
-  $scope.validateMapping = (index) ->
-    for i to $scope.columns.length-1
-      switch i==index
-      | true =>
-      | otherwise =>
-        switch $scope.columns[i] == $scope.columns[index]
-        | false =>
-        | otherwise => $scope.columns[i] = ''
-
-
-  $scope.errorLines = []
-  $scope.mapAndValidate = ->
-    $scope.errorLines.length = 0
-    $scope.status = 'validating'
-    for line in $scope.lines
-      matches = Data.cards |> _.filter (item) ->
-        item.name == line[2] and item.set.name == line[1]
-      switch matches.length
-      | 0 => $scope.errorLines.push line
-      | 1 =>
-      | otherwise => $scope.errorLines.push line
-
   $scope.import = ->
-    $scope.status = 'done'
-
-
-
-
-
-
-
+    Api.importCollection { cardsToImport: $scope.cardsToImport }, (data) ->
+      console.log data
+      $scope.status = 'done'
 
 
 
@@ -205,15 +186,22 @@ dataFactory = ($http,$q) ->
     setsByCode: {}
     cards: []
     cardsByMultiverseid: {}
+    cardsByName: {}
     loaded:false
 
   retVal.setsLoaded = $http.get '/api/v1/sets'
   retVal.cardsLoaded = $http.get '/api/v1/cards'
+  retVal.collectionCardsLoaded = $http.get '/api/v1/collections'
 
-  retVal.allDataLoaded = $q.all [retVal.setsLoaded, retVal.cardsLoaded]
+  retVal.allDataLoaded = $q.all [
+    retVal.setsLoaded
+    retVal.cardsLoaded
+    retVal.collectionCardsLoaded
+  ]
   .then (responses) ->
     sets = responses[0].data
     cards = responses[1].data
+    collectionCards = responses[2].data
 
     retVal.sets = sets
     for set in sets
@@ -221,14 +209,24 @@ dataFactory = ($http,$q) ->
 
     retVal.cards = cards
     for card in cards
+      if !retVal.cardsByName[card.name]?
+        retVal.cardsByName[card.name] = []
+      retVal.cardsByName[card.name].push card
       retVal.cardsByMultiverseid[card.mid] = card
+      card.count = 0
+      card.fcount = 0
       card.set = retVal.setsByCode[card.setCode]
       card.searchName = card.name
       .replace /Æ/g, 'Ae'
       .replace /é/g,'e'
-      .replace /à|â/g,'a'
+      .replace /à|â|á/g,'a'
       .toLowerCase!
-      console.log card.searchName
+
+    retVal.collectionCards = collectionCards.cards
+    collectionCards |> _.each (card) ->
+      if retVal.cardsByMultiverseid[card.mid]?
+        retVal.cardsByMultiverseid[card.mid].count = card.count
+        retVal.cardsByMultiverseid[card.mid].fcount = card.fcount
 
   , (error) ->
     console.log 'Some error ',error
@@ -256,15 +254,18 @@ config = ($routeProvider) ->
     templateUrl: 'import.html'
     controller: 'importController'
 
+
   .otherwise do
     redirectTo: '/home'
 
-  switch window.File? and window.FileReader? and window.FileList? and window.Blob?
-  | true =>
-  | otherwise => alert "The File APIs are not fully supported in this browser.#{window.File},#{window.FileReader} "
+app = angular.module 'app',[
+  'ngResource'
+  'ngRoute'
+  'ui.bootstrap'
+  'trNgGrid'
 
-
-app = angular.module 'app',['ngResource','ngRoute','ngFacebook']
+  'ngFacebook'
+]
 
 app.factory 'Api',['$resource','ErrorHandler',apiFactory]
 app.factory 'ErrorHandler',['Errors',errorHandlerFactory]
@@ -276,9 +277,9 @@ app.controller 'menuController', ['$scope','FB','FBStatus',menuController]
 app.controller 'menuItemController', ['$scope','$location','FBStatus',menuItemController]
 app.controller 'errorController', ['$scope','Errors',errorController]
 
-
 app.controller 'homeController', ['$scope','FBStatus',homeController]
-app.controller 'captureController', ['$scope','Errors','Api','Data',captureController]
+app.controller 'captureController', ['$scope','$timeout','Api','Data',captureController]
+
 app.controller 'importController', ['$scope','Api','Data',importController]
 app.controller 'exploreController', ['$scope','Errors','Api',exploreController]
 

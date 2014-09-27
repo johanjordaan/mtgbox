@@ -1,40 +1,29 @@
 <div class="contents">
   <div ng-show="status == 'selecting'">
+    <p>The file to import has to be a CSV file.</p>
+    <p>All values betwen ,'s needs to surrounded by "'s.</p>
+    <p>Files exporte by this site should work ok.</p>
+    <p>The format of the CSV files should be : --> Number,Set Name,Card Name,Count,Foil Count</p>
+
+
     <input file type="file" ng-model="importFile">
     <button class="btn btn-primary" ng-click="read()">Read</button>
   </div>
 
-  <div ng-show="status == 'mapping'">
-    <button class="btn btn-primary" ng-click="mapAndValidate()">Map and Validate</button>
-    <table class="table table-condensed">
-      <tr>
-        <th ng-repeat="column in columns track by $index">
-          <select ng-model="columns[$index]" ng-options="item for item in lookup" ng-change="validateMapping($index)"></select>
-        </th>
-      </tr>
-      <tr ng-repeat="line in lines track by $index">
-        <td ng-repeat="cel in line track by $index">
-          {{cel}}
-        </td>
-      </tr>
-    </table>
-    <button class="btn btn-primary" ng-click="mapAndValidate()">Map and Validate</button>
-  </div>
-
   <div ng-show="status == 'validating'">
+    Normal:{{total}},Foil:{{ftotal}}
     <button class="btn btn-primary" ng-click="import()">Import</button>
-    <table class="table table-condensed">
+    <!--table class="table table-condensed">
       <tr ng-repeat="line in errorLines track by $index">
         <td ng-repeat="cel in line track by $index">
           {{cel}}
         </td>
       </tr>
     </table>
-    <button class="btn btn-primary" ng-click="import()">Import</button>
+    <button class="btn btn-primary" ng-click="import()">Import</button-->
   </div>
 
   <div ng-show="status == 'done'">
     Done ... Imported xxx cards.
   </div>
-
 </div>

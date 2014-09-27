@@ -8,9 +8,53 @@
 
   <div ng-show="isReady()">
 
-    <input class="form-control" type="text" ng-model="filter" ng-focus='clearFilter()'>
+    <input class="form-control" type="text" ng-model="filter" ng-model-options="{debounce:0}"  ng-focus='clearFilter()'></input>
 
-    <div ng-repeat="card in filteredCards" class="row">
+    <table tr-ng-grid="" items="filteredCards" fields="['name','set.name','setIcon','count','fcount']" width="200px">
+      <thead>
+        <tr>
+          <th field-name="name" display-name="Name" enable-filtering="true"
+            enable-sorting="false" cell-width="250px" display-align="right"></th>
+          <th field-name="setIcon" display-name="Icon" cell-width="60px"></th>
+          <th field-name="set" display-name="Set"></th>
+          <th field-name="count" display-name="Cards"></th>
+          <th field-name="fcount" display-name="Foils"></th>
+        </tr>
+        </thead>
+      <tbody>
+      <tr>
+        <td field-name="setIcon">
+          <div>
+            <img src="http://mtgimage.com/actual/symbol/set/{{gridItem.set.code.toLowerCase()}}/c/24.gif"></img>
+          </div>
+        </td>
+
+        <td field-name="count">
+          <div>
+            {{gridItem.count}}
+            <div class="btn-group">
+              <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(gridItem.mid,1,0)">+</button>
+              <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(gridItem.mid,-1,0)">-</button>
+            </div>
+          </div>
+        </td>
+
+        <td field-name="fcount">
+          <div>
+            {{gridItem.fcount}}
+            <div class="btn-group">
+              <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(gridItem.mid,0,1)">+</button>
+              <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(gridItem.mid,0,-1)">-</button>
+            </div>
+          </div>
+        </td>
+
+      </tr>
+      </tbody>
+    </table>
+
+
+    <!--div ng-repeat="card in filteredCards" class="row">
       <div class="col-md-1">
         <div class="btn-group">
           <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,1,0)">+</button>
@@ -36,7 +80,7 @@
         {{card.set.name }}
       </div>
 
-    </div>
+    </div-->
 
   </div>
 </div>

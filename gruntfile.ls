@@ -75,12 +75,28 @@ module.exports = (grunt) ->
           'bootstrap/bootstrap.js': 'bootstrap/dist/js/bootstrap.min.js'
           'jquery.js': 'jquery/dist/jquery.js'
 
+          'angular-bootstrap/ui-bootstrap-tpls.js': 'angular-bootstrap/ui-bootstrap-tpls.min.js'
+
+          'trnggrid/trnggrid.js': 'trnggrid/release/trnggrid.min.js'
+          'trnggrid/trnggrid.css': 'trnggrid/release/trnggrid.min.css'
+
+
           # This has been added to avoid the browser error
           #
           'angular/angular.min.js.map': 'angular/angular.min.js.map'
           'angular/angular-route.min.js.map': 'angular-route/angular-route.min.js.map'
           'angular/angular-resource.min.js.map': 'angular-resource/angular-resource.min.js.map'
           'jquery.min.map': 'jquery/dist/jquery.min.map'
+
+          # Copy the bootstrap font files
+          #
+          'fonts/glyphicons-halflings-regular.eot' : 'bootstrap/fonts/glyphicons-halflings-regular.eot'
+          'fonts/glyphicons-halflings-regular.svg' : 'bootstrap/fonts/glyphicons-halflings-regular.svg'
+          'fonts/glyphicons-halflings-regular.ttf' : 'bootstrap/fonts/glyphicons-halflings-regular.ttf'
+          'fonts/glyphicons-halflings-regular.woff' : 'bootstrap/fonts/glyphicons-halflings-regular.woff'
+
+
+
 
 
     mochaTest:

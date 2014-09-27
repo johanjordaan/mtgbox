@@ -20,6 +20,7 @@ db.serialize ->
 
     row.cardname = row.cardname.replace /D.?j.? Vu/, 'Déjà Vu'
     row.cardname = row.cardname.replace /Dand.?n/, 'Dandân'
+    row.cardname = row.cardname.replace /Ghazban/, 'Ghazbán'
 
     rows += "\"#{count}\",\"#{row.setname}\",\"#{row.cardname}\",\"#{row.cnt}\",\"#{row.fcnt}\"\n"
 
