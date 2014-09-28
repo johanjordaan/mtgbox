@@ -30,7 +30,11 @@ saveCard = (card,set,cb) ->
   if card.colors? then card.color = _.join " ",card.colors
   card.setCode = set.code
   card.setName = set.name
-  card.mid = card.multiverseid
+  # If the mid does not exist then create one
+  #
+  switch card.multiverseid?
+  | true => card.mid = card.multiverseid
+  | otherwise => card.mid = "#{card.setCode}_#{card.number}"
 
   db.cards.save card, (err) ->
     | err? => cb(err,card.name)

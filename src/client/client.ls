@@ -54,7 +54,7 @@ captureController = ($scope,$timeout,Api,Data) ->
   # Capture
   #
   $scope.ready = false
-  Data.allDataLoaded.then ->
+  Api.getCollection ->
     $scope.ready = true
 
   $scope.filter = ''
@@ -78,7 +78,7 @@ captureController = ($scope,$timeout,Api,Data) ->
 
 
   $scope.clearFilter = ->
-    #$scope.filter = ''
+    $scope.filter = ''
 
   $scope.isReady = ->
     $scope.ready
@@ -111,6 +111,7 @@ importController = ($scope,Api,Data) ->
       data = event.target.result
       lines = data.split('\n')
       lines |> _.each (line) ->
+        console.log line
         if line.length>0
           tokens = line.split /\"[\s]*,[\s]*\"/ |> _.map (item) ->
             item.replace /\"/g, ''
@@ -118,23 +119,27 @@ importController = ($scope,Api,Data) ->
           |> _.filter (item) ->
             item.length > 0
 
-          # Find the card
-          #
-          name = tokens[2]
-          setName = tokens[1]
-          count = Number(tokens[3])
-          fcount = Number(tokens[4])
-          card = Data.cardsByName[name] |> _.find (card) -> card.set.name == setName
-          switch card?
-          | false => $scope.errorLines.push line
-          | otherwise =>
-            $scope.cardsToImport.push do
-              mid: card.mid
-              count: count
-              fcount: fcount
+          console.log Data.cardsByName[tokens[2]]
+          switch
+          | tokens.length>=5 =>
+            # Find the card
+            #
+            name = tokens[2]
+            setName = tokens[1]
+            count = Number(tokens[3])
+            fcount = Number(tokens[4])
+            card = Data.cardsByName[name] |> _.find (card) -> card.set.name == setName
+            switch card?
+            | false => $scope.errorLines.push line
+            | otherwise =>
+              $scope.cardsToImport.push do
+                mid: card.mid
+                count: count
+                fcount: fcount
 
-            $scope.total += count
-            $scope.ftotal += fcount
+              $scope.total += count
+              $scope.ftotal += fcount
+          | otherwise =>
 
       $scope.status = 'validating'
       $scope.$apply!
@@ -146,13 +151,11 @@ importController = ($scope,Api,Data) ->
       console.log data
       $scope.status = 'done'
 
-
-
+exportController = ($scope,Api,Data) ->
 
 exploreController = ($scope,Errors,Api) ->
 
-
-apiFactory = ($resource,ErrorHandler) ->
+apiFactory = ($resource,Data,ErrorHandler) ->
   do
     importCollection: (data,cb) ->
       $resource '/api/v1/collections/import', null
@@ -166,10 +169,30 @@ apiFactory = ($resource,ErrorHandler) ->
       $resource '/api/v1/sets', null
       .query {}, {}, cb, ErrorHandler
 
-
     getCollection: (cb) ->
+      _updateCounts = (collectionCards,cb) ->
+
+
+        collectionCardsByMid = {}
+        for card in collectionCards
+          collectionCardsByMid[card.mid] = card
+
+        for card in Data.cards
+          collectionCard = collectionCardsByMid[card.mid]
+          switch collectionCard?
+          | true =>
+            card.count = collectionCard.count
+            card.fcount = collectionCard.fcount
+          | otherwise =>
+            card.count = 0
+            card.fcount = 0
+        cb!
+
       $resource '/api/v1/collections', null
-      .query {}, {}, cb, ErrorHandler
+      .query {}, {}, (collectionCards) ->
+        Data.allDataLoaded.then ->
+          _updateCounts collectionCards, cb
+      , ErrorHandler
 
     updateCollection: (data, cb) ->
       $resource '/api/v1/collections', null
@@ -179,6 +202,7 @@ apiFactory = ($resource,ErrorHandler) ->
 errorHandlerFactory = (Errors) ->
   (err) ->
     Errors.push err.data.message
+
 
 dataFactory = ($http,$q) ->
   retVal = do
@@ -191,17 +215,14 @@ dataFactory = ($http,$q) ->
 
   retVal.setsLoaded = $http.get '/api/v1/sets'
   retVal.cardsLoaded = $http.get '/api/v1/cards'
-  retVal.collectionCardsLoaded = $http.get '/api/v1/collections'
 
   retVal.allDataLoaded = $q.all [
     retVal.setsLoaded
     retVal.cardsLoaded
-    retVal.collectionCardsLoaded
   ]
   .then (responses) ->
     sets = responses[0].data
     cards = responses[1].data
-    collectionCards = responses[2].data
 
     retVal.sets = sets
     for set in sets
@@ -221,12 +242,6 @@ dataFactory = ($http,$q) ->
       .replace /é/g,'e'
       .replace /à|â|á/g,'a'
       .toLowerCase!
-
-    retVal.collectionCards = collectionCards.cards
-    collectionCards |> _.each (card) ->
-      if retVal.cardsByMultiverseid[card.mid]?
-        retVal.cardsByMultiverseid[card.mid].count = card.count
-        retVal.cardsByMultiverseid[card.mid].fcount = card.fcount
 
   , (error) ->
     console.log 'Some error ',error
@@ -254,6 +269,9 @@ config = ($routeProvider) ->
     templateUrl: 'import.html'
     controller: 'importController'
 
+  .when '/export', do
+    templateUrl: 'export.html'
+    controller: 'exportController'
 
   .otherwise do
     redirectTo: '/home'
@@ -267,7 +285,7 @@ app = angular.module 'app',[
   'ngFacebook'
 ]
 
-app.factory 'Api',['$resource','ErrorHandler',apiFactory]
+app.factory 'Api',['$resource','Data','ErrorHandler',apiFactory]
 app.factory 'ErrorHandler',['Errors',errorHandlerFactory]
 app.factory 'Data', ['$http','$q',dataFactory]
 
@@ -279,8 +297,9 @@ app.controller 'errorController', ['$scope','Errors',errorController]
 
 app.controller 'homeController', ['$scope','FBStatus',homeController]
 app.controller 'captureController', ['$scope','$timeout','Api','Data',captureController]
-
 app.controller 'importController', ['$scope','Api','Data',importController]
+app.controller 'exportController', ['$scope','Api','Data',exportController]
+
 app.controller 'exploreController', ['$scope','Errors','Api',exploreController]
 
 app.config ['$routeProvider',config]

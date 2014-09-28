@@ -17,7 +17,7 @@ db.serialize ->
     | 'Ravnica City of Guilds' => row.setname = 'Ravnica: City of Guilds'
     | otherwise =>
 
-
+    row.cardname = row.cardname.replace /Aether/,'Æther'
     row.cardname = row.cardname.replace /D.?j.? Vu/, 'Déjà Vu'
     row.cardname = row.cardname.replace /Dand.?n/, 'Dandân'
     row.cardname = row.cardname.replace /Ghazban/, 'Ghazbán'

@@ -36,8 +36,33 @@ request "https://graph.facebook.com/oauth/access_token?client_id=#{sconfig.faceb
   accessToken := querystring.parse(body).access_token
 
 
+cards = []
+cardsByMid = {}
+sets = []
+setsByCode = {}
+buildLookupTables = ->
+  db.sets.findItems {}, (err, sets) ->
+    | err? => res.status(500).send err
+    | otherwise =>
+      sets := sets
+      for set in sets
+        setsByCode[set.code] = set
+
+      db.cards.findItems {}, (err, cards) ->
+        | err? => res.status(500).send err
+        | otherwise =>
+          cards := cards
+          for card in cards
+            card.set = setsByCode[card.setCode]
+            cardsByMid[card.mid] = card
+
+buildLookupTables!
+
 server.listen config.port, ->
   console.log "server [#{config.name}] listening on port - Listening on port [#{config.port}]"
+
+
+
 
 authFilter = (req,res,next) ->
   key = "fbsr_#{sconfig.facebook.clientId}"
@@ -94,8 +119,7 @@ app.get '/api/v1/collections/', authFilter, (req, res) ->
   db.collections.findOne { user: req.user._id }, { _id:0, user:0 } (err,collection) ->
     | err? => res.status(500).send err
     | !collection? => res.status(200).send []
-    | otherwise => res.status(200).send collection
-
+    | otherwise => res.status(200).send collection.cards
 
 app.post '/api/v1/collections/', authFilter, (req, res) ->
   mid = req.body.mid
@@ -111,12 +135,15 @@ app.post '/api/v1/collections/', authFilter, (req, res) ->
       db.collections.update { user: req.user._id, 'cards.mid': mid }
       , { '$inc' : { 'cards.$.count': delta, 'cards.$.fcount': fdelta } }
       , (err,writeResult) ->
-        | err? => res.status(500).send { message: err }
+        | err? => res.status(500).send err
         | writeResult==0 =>
-          db.collections.update {user: }
-        | otherwise =>
-          console.log writeResult
-          res.status(200).send ''
+          db.collections.update {user: req.user._id }
+          , { '$push' : { cards : { mid:mid, count:delta, fcount:delta } } }
+          , { upsert: true}
+          , (err) ->
+            | err? => res.status(500).send err
+            | otherwise => res.status(200).send ''
+        | otherwise => res.status(200).send ''
 
 
 app.post '/api/v1/collections/import', authFilter, (req, res) ->
@@ -125,6 +152,31 @@ app.post '/api/v1/collections/import', authFilter, (req, res) ->
   | otherwise =>
     db.collections.save { user: req.user._id, cards: req.body.cardsToImport }, (err) ->
       res.status(200).send { message: 'Imported...' }
+
+
+app.get '/api/v1/collections/download', authFilter, (req, res) ->
+  db.collections.findOne { user: req.user._id }, { _id:0, user:0 } (err,collection) ->
+    | err? => res.status(500).send err
+    | otherwise =>
+      csvText  ="sep=,\nmultiversid,count,fcount\n"
+      for card in collection.cards
+        csvText += "#{card.mid},#{card.count},#{card.fcount}\n"
+
+      res.setHeader("Content-Disposition", "attachment;filename=collection.csv")
+      res.status(200).type('text/csv').send csvText
+
+app.get '/api/v1/collections/export', authFilter, (req, res) ->
+  db.collections.findOne { user: req.user._id }, { _id:0, user:0 } (err,collection) ->
+    | err? => res.status(500).send err
+    | otherwise =>
+      csvText  ="sep=,\n"
+      for item,index in collection.cards
+        card = cardsByMid[item.mid]
+        csvText += "\"#{index}\",\"#{card.set.name}\",\"#{card.name}\",\"#{item.count}\",\"#{item.fcount}\",\"#{card.multiverseid}\"\n"
+
+      res.setHeader("Content-Disposition", "attachment;filename=collection.csv")
+      res.status(200).type('text/csv').send csvText
+
 
 app.post '/api/v1/authenticate',authFilter, (req, res) ->
   console.log req.user
