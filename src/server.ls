@@ -138,7 +138,7 @@ app.post '/api/v1/collections/', authFilter, (req, res) ->
         | err? => res.status(500).send err
         | writeResult==0 =>
           db.collections.update {user: req.user._id }
-          , { '$push' : { cards : { mid:mid, count:delta, fcount:delta } } }
+          , { '$push' : { cards : { mid:mid, count:delta, fcount:fdelta } } }
           , { upsert: true}
           , (err) ->
             | err? => res.status(500).send err
