@@ -8,11 +8,13 @@
 
     <input file type="file" ng-model="importFile">
     <button class="btn btn-primary" ng-click="read()">Read</button>
+    <a class="btn btn-default" href="#/capture">Cancel</a>
   </div>
 
   <div ng-show="status == 'validating'">
     Normal:{{total}},Foil:{{ftotal}}
     <button class="btn btn-primary" ng-click="import()">Import</button>
+    <a class="btn btn-default" href="#/capture">Cancel</a>
     <!--table class="table table-condensed">
       <tr ng-repeat="line in errorLines track by $index">
         <td ng-repeat="cel in line track by $index">
@@ -25,5 +27,6 @@
 
   <div ng-show="status == 'done'">
     Done ... Imported xxx cards.
+    <a class="btn btn-default" href="#/capture">Back</a>
   </div>
 </div>

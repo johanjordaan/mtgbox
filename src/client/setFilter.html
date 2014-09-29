@@ -1,0 +1,9 @@
+<div class="contents">
+  <div ng-repeat="set in Data.sets">
+    <div class="btn-group">
+      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="true" uncheckable>On</label>
+      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="false" uncheckable>Off</label>
+    </div>
+    {{set.name}}
+  </li>
+</div>

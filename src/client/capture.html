@@ -1,14 +1,30 @@
 <div class="contents">
-  <a href="#/import">Import</a>&nbsp;|&nbsp;<a href="#/export">Export</a>
-  <hr>
-
   <div ng-show="!isReady()">
     Loading data ...
   </div>
 
   <div ng-show="isReady()">
 
-    <input class="form-control" type="text" ng-model="filter" ng-model-options="{debounce:0}"  ng-focus='clearFilter()'></input>
+    <div class="btn-group">
+        <label class="btn btn-default" ng-model="setFilterEnabled" btn-radio="true">On</label>
+        <label class="btn btn-default" ng-model="setFilterEnabled" btn-radio="false">Off</label>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-default" href="#/setFilter"><span class="glyphicon glyphicon-filter"></span></a>
+    </div>
+
+    <div class="btn-group">
+        <label class="btn btn-default" ng-model="textFilterEnabled" btn-radio="true">On</label>
+        <label class="btn btn-default" ng-model="textFilterEnabled" btn-radio="false">Off</label>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-default" href="#/import"><span class="glyphicon glyphicon-cloud-upload"></span></a>
+      <a class="btn btn-default" href="#/export"><span class="glyphicon glyphicon-cloud-download"></span></a>
+    </div>
+
+    <input class="form-control" type="text" ng-model="filter" ng-focus='clearFilter()' ng-disabled='!textFilterEnabled'></input>
 
     <table tr-ng-grid="" items="filteredCards" fields="['name','set.name','setIcon','count','fcount']" width="200px">
       <thead>
@@ -52,35 +68,6 @@
       </tr>
       </tbody>
     </table>
-
-
-    <!--div ng-repeat="card in filteredCards" class="row">
-      <div class="col-md-1">
-        <div class="btn-group">
-          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,1,0)">+</button>
-          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,-1,0)">-</button>
-        </div>
-        {{ card.count || 0 }}
-      </div>
-
-      <div class="col-md-1">
-        <div class="btn-group">
-          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,0,1)">+</button>
-          <button type="button" class="btn btn-xs btn-default" ng-click="updateCount(card.mid,0,-1)">-</button>
-        </div>
-        {{ card.fcount || 0 }}
-      </div>
-
-      <div class="col-md-2">
-        {{card.name}}
-      </div>
-
-      <div class="col-md-3">
-        <img src="http://mtgimage.com/actual/symbol/set/{{card.setCode.toLowerCase()}}/c/24.gif"></img>
-        {{card.set.name }}
-      </div>
-
-    </div-->
 
   </div>
 </div>

@@ -106,7 +106,9 @@ authFilter = (req,res,next) ->
 
 
 app.get '/api/v1/sets', (req,res) ->
-  db.sets.findItems {},{_id:0, name:1, code:1}, (err,sets) ->
+  db.sets.find {},{_id:0, name:1, code:1}
+  .sort { 'releaseDate':-1}
+  .toArray (err,sets) ->
     | err? => res.status(500).send err
     | otherwise => res.status(200).send sets
 

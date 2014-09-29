@@ -51,6 +51,8 @@ homeController = ($scope,FBStatus) ->
 
 captureController = ($scope,$timeout,Api,Data) ->
 
+  $scope.applyFilters = ->
+
   # Capture
   #
   $scope.ready = false
@@ -59,26 +61,47 @@ captureController = ($scope,$timeout,Api,Data) ->
 
   $scope.filter = ''
   $scope.filteredCards = []
-  $scope.timeout = null
-  $scope.updateList = ->
-    $scope.filteredCards.length = 0
-    filter = $scope.filter.toLowerCase()
-    if Data.cards? and $scope.filter.length>2
-       Data.cards |> _.each (card) ->
-        switch card.searchName.indexOf(filter) >= 0
-        | false =>
-        | otherwise => $scope.filteredCards.push card
-    else
-      $scope.filteredCards = []
-    $scope.timeout = null
 
+  $scope.timeout = null
   $scope.$watch 'filter', (oldValue,newValue) ->
     if $scope.timeout? then $timeout.cancel $scope.timeout
-    $scope.timeout = $timeout $scope.updateList,500
-
+    $scope.timeout = $timeout ->
+      $scope.applyFilter!
+      $scope.timeout = null
+    ,500
 
   $scope.clearFilter = ->
     $scope.filter = ''
+
+  $scope.setFilterEnabled = false
+  $scope.textFilterEnabled = true
+
+  $scope.$watch 'setFilterEnabled', (val) ->
+    $scope.applyFilter!
+
+  $scope.applyFilter = ->
+    setFilter = []
+    Data.setFilter |> _.keys |> _.each (key) ->
+      if Data.setFilter[key] then setFilter.push key
+
+
+    console.log $scope.setFilterEnabled,setFilter
+
+    $scope.filteredCards.length = 0
+    filter = $scope.filter.toLowerCase()
+    if Data.cards? and ($scope.filter.length > 2 or !$scope.textFilterEnabled)
+       Data.cards |> _.each (card) ->
+        switch
+        | $scope.setFilterEnabled and $scope.textFilterEnabled =>
+          if card.searchName.indexOf(filter) >= 0 and card.set.code in setFilter
+            $scope.filteredCards.push card
+        | !$scope.setFilterEnabled and $scope.textFilterEnabled =>
+          if card.searchName.indexOf(filter) >= 0
+            $scope.filteredCards.push card
+        | $scope.setFilterEnabled and !$scope.textFilterEnabled =>
+          if card.setCode in Data.setFilter
+            $scope.filteredCards.push card
+
 
   $scope.isReady = ->
     $scope.ready
@@ -91,6 +114,10 @@ captureController = ($scope,$timeout,Api,Data) ->
       if !Data.cardsByMultiverseid[mid].fcount?
         Data.cardsByMultiverseid[mid].fcount = 0
       Data.cardsByMultiverseid[mid].fcount += fdelta
+
+setFilterController = ($scope,Data) ->
+  $scope.Data = Data
+
 
 
 importController = ($scope,Api,Data) ->
@@ -200,6 +227,7 @@ errorHandlerFactory = (Errors) ->
 
 
 dataFactory = ($http,$q) ->
+
   retVal = do
     sets: []
     setsByCode: {}
@@ -207,6 +235,7 @@ dataFactory = ($http,$q) ->
     cardsByMultiverseid: {}
     cardsByName: {}
     loaded:false
+    setFilter: {}
 
   retVal.setsLoaded = $http.get '/api/v1/sets'
   retVal.cardsLoaded = $http.get '/api/v1/cards'
@@ -222,6 +251,7 @@ dataFactory = ($http,$q) ->
     retVal.sets = sets
     for set in sets
       retVal.setsByCode[set.code] = set
+      retVal.setFilter[set.code] = false
 
     retVal.cards = cards
     for card in cards
@@ -260,6 +290,11 @@ config = ($routeProvider) ->
     templateUrl: 'explore.html'
     controller: 'exploreController'
 
+  .when '/setFilter', do
+    templateUrl: 'setFilter.html'
+    controller: 'setFilterController'
+
+
   .when '/import', do
     templateUrl: 'import.html'
     controller: 'importController'
@@ -292,8 +327,12 @@ app.controller 'errorController', ['$scope','Errors',errorController]
 
 app.controller 'homeController', ['$scope','FBStatus',homeController]
 app.controller 'captureController', ['$scope','$timeout','Api','Data',captureController]
+
+
+app.controller 'setFilterController', ['$scope','Data',setFilterController]
 app.controller 'importController', ['$scope','Api','Data',importController]
 app.controller 'exportController', ['$scope','Api','Data',exportController]
+
 
 app.controller 'exploreController', ['$scope','Errors','Api',exploreController]
 
