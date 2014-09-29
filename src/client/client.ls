@@ -83,19 +83,14 @@ captureController = ($scope,$timeout,Api,Data) ->
   $scope.isReady = ->
     $scope.ready
 
-
-  $scope._updateCount = (mid,countDefault,delta,fcountDefault,fdelta) ->
-    if !Data.cardsByMultiverseid[mid].count?
-      Data.cardsByMultiverseid[mid].count = 0
-    Data.cardsByMultiverseid[mid].count += delta
-    if !Data.cardsByMultiverseid[mid].fcount?
-      Data.cardsByMultiverseid[mid].fcount = 0
-    Data.cardsByMultiverseid[mid].fcount += fdelta
-
-
   $scope.updateCount = (mid,delta,fdelta) ->
     Api.updateCollection { mid: mid, delta:delta, fdelta:fdelta }, ->
-      $scope._updateCount mid,0,delta,0,fdelta
+      if !Data.cardsByMultiverseid[mid].count?
+        Data.cardsByMultiverseid[mid].count = 0
+      Data.cardsByMultiverseid[mid].count += delta
+      if !Data.cardsByMultiverseid[mid].fcount?
+        Data.cardsByMultiverseid[mid].fcount = 0
+      Data.cardsByMultiverseid[mid].fcount += fdelta
 
 
 importController = ($scope,Api,Data) ->
