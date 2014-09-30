@@ -79,13 +79,13 @@ captureController = ($scope,$timeout,Api,Data) ->
   $scope.$watch 'setFilterEnabled', (val) ->
     $scope.applyFilter!
 
+  $scope.$watch 'textFilterEnabled', (val) ->
+    $scope.applyFilter!
+
   $scope.applyFilter = ->
     setFilter = []
     Data.setFilter |> _.keys |> _.each (key) ->
       if Data.setFilter[key] then setFilter.push key
-
-
-    console.log $scope.setFilterEnabled,setFilter
 
     $scope.filteredCards.length = 0
     filter = $scope.filter.toLowerCase()
@@ -99,7 +99,7 @@ captureController = ($scope,$timeout,Api,Data) ->
           if card.searchName.indexOf(filter) >= 0
             $scope.filteredCards.push card
         | $scope.setFilterEnabled and !$scope.textFilterEnabled =>
-          if card.setCode in Data.setFilter
+          if card.setCode in setFilter
             $scope.filteredCards.push card
 
 
