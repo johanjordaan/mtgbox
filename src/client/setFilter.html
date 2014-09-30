@@ -1,8 +1,11 @@
 <div class="contents">
+  <button class="btn btn-default" ng-click="selectAll()">Select All</button>
+  <button class="btn btn-default" ng-click="clearAll()">Clear All</button>
+
   <div ng-repeat="set in Data.sets">
     <div class="btn-group">
-      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="true" uncheckable>On</label>
-      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="false" uncheckable>Off</label>
+      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="true">On</label>
+      <label class="btn btn-xs btn-default" ng-model="Data.setFilter[set.code]" btn-radio="false">Off</label>
     </div>
     {{set.name}}
   </li>

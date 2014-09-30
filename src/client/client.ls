@@ -87,7 +87,7 @@ captureController = ($scope,$timeout,Api,Data) ->
     Data.setFilter |> _.keys |> _.each (key) ->
       if Data.setFilter[key] then setFilter.push key
 
-    $scope.filteredCards.length = 0
+    $scope.filteredCards = []
     filter = $scope.filter.toLowerCase()
     if Data.cards? and ($scope.filter.length > 2 or !$scope.textFilterEnabled)
        Data.cards |> _.each (card) ->
@@ -101,6 +101,13 @@ captureController = ($scope,$timeout,Api,Data) ->
         | $scope.setFilterEnabled and !$scope.textFilterEnabled =>
           if card.setCode in setFilter
             $scope.filteredCards.push card
+
+    #$scope.filteredCards = _.take 1000,filteredCards
+    #if filteredCards.length > 1000
+    #  $timeout ->
+    #    for i to 1000
+    #      $scope.filteredCards.push filteredCards[i+1000]
+    #  ,500
 
 
   $scope.isReady = ->
@@ -117,6 +124,15 @@ captureController = ($scope,$timeout,Api,Data) ->
 
 setFilterController = ($scope,Data) ->
   $scope.Data = Data
+
+  $scope.selectAll = ->
+    for set in $scope.Data.sets
+      $scope.Data.setFilter[set.code] = true
+
+  $scope.clearAll = ->
+    for set in $scope.Data.sets
+      $scope.Data.setFilter[set.code] = false
+
 
 
 

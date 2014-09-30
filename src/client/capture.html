@@ -26,11 +26,10 @@
 
     <input class="form-control" type="text" ng-model="filter" ng-focus='clearFilter()' ng-disabled='!textFilterEnabled'></input>
 
-    <table tr-ng-grid="" items="filteredCards" fields="['name','set.name','setIcon','count','fcount']" width="200px">
+    <table tr-ng-grid="" items="filteredCards" fields="['name','set.name','setIcon','count','fcount']" page-items="12">
       <thead>
         <tr>
-          <th field-name="name" display-name="Name" enable-filtering="true"
-            enable-sorting="false" cell-width="250px" display-align="right"></th>
+          <th field-name="name" display-name="Name" cell-width="250px" display-align="right"></th>
           <th field-name="setIcon" display-name="Icon" cell-width="60px"></th>
           <th field-name="set" display-name="Set"></th>
           <th field-name="count" display-name="Cards"></th>
