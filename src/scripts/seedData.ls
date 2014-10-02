@@ -19,6 +19,7 @@ saveSet = (set,cb) ->
     border: set.border
     type: set.type
     numCards: set.cards.length
+    block: set.block
 
   db.sets.save newSet, (err) ->
     | err? => cb(err,newSet.name)
@@ -42,12 +43,12 @@ saveCard = (card,set,cb) ->
 
 
 console.log 'Unzipping ...'
-exec "unzip -o data/AllSets.json.zip -d data < /dev/tty",(err,stdout,stderr) ->
+exec "unzip -o data/AllSets-x.json.zip -d data < /dev/tty",(err,stdout,stderr) ->
   | err? => console.log err
   | otherwise =>
     console.log 'Unzipping [Done]'
     console.log 'Reading sets ...'
-    fs.readFile 'data/AllSets.json', 'utf8', (err, data) ->
+    fs.readFile 'data/AllSets-x.json', 'utf8', (err, data) ->
       | err? => console.log err
       | otherwise =>
         sets = JSON.parse(data)
@@ -87,5 +88,5 @@ exec "unzip -o data/AllSets.json.zip -d data < /dev/tty",(err,stdout,stderr) ->
 
 
                 console.log 'Cleaning up ...'
-                exec 'rm data/AllSets.json < /dev/tty', (err,stdout,stderr) ->
+                exec 'rm data/AllSets-x.json < /dev/tty', (err,stdout,stderr) ->
                   console.log 'Cleanup [Done]',err
