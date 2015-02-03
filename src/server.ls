@@ -54,6 +54,8 @@ buildLookupTables = ->
           cards := cards
           for card in cards
             card.set = setsByCode[card.setCode]
+            if card.mid == 47784
+                console.log '---->',card
             cardsByMid[card.mid] = card
 
 buildLookupTables!
@@ -174,7 +176,11 @@ app.get '/api/v1/collections/export', authFilter, (req, res) ->
       csvText  ="sep=,\n"
       for item,index in collection.cards
         card = cardsByMid[item.mid]
-        csvText += "\"#{index}\",\"#{card.set.name}\",\"#{card.name}\",\"#{item.count}\",\"#{item.fcount}\",\"#{card.multiverseid}\"\n"
+        switch card?
+        | true =>
+            csvText += "\"#{index}\",\"#{card.set.name}\",\"#{card.name}\",\"#{item.count}\",\"#{item.fcount}\",\"#{card.multiverseid}\"\n"
+        | otherwise =>
+            csvText += "\"#{index}\",\"_\",\"_\",\"#{item.count}\",\"#{item.fcount}\",\"#{item.mid}\"\n"
 
       res.setHeader("Content-Disposition", "attachment;filename=collection.csv")
       res.status(200).type('text/csv').send csvText
