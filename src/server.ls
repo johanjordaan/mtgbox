@@ -54,8 +54,6 @@ buildLookupTables = ->
           cards := cards
           for card in cards
             card.set = setsByCode[card.setCode]
-            if card.mid == 47784
-                console.log '---->',card
             cardsByMid[card.mid] = card
 
 buildLookupTables!

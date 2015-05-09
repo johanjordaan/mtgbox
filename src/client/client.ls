@@ -10,7 +10,9 @@ menuController = ($scope,FB,FBStatus) ->
   $scope.menuItems = [
     { label: 'home'       ,path: '/home'      ,requireAuth: false }
     { label: 'capture'    ,path: '/capture'   ,requireAuth: true }
-    { label: 'explore'    ,path: '/explore'   ,requireAuth: true }
+    ##{ label: 'explore'    ,path: '/explore'   ,requireAuth: true }
+    { label: 'decks'    ,path: '/decks'   ,requireAuth: true }
+
   ]
 
   $scope.FBStatus = FBStatus
