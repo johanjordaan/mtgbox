@@ -10,6 +10,7 @@
     "bootstrap": "~3.2.0",
     "jquery": "~2.1.1",
     "angular-bootstrap": "~0.11.1",
-    "trNgGrid": "~3.0.3"
+    "trNgGrid": "~3.0.3",
+    "angular-nvd3":"~1.0.0-beta"
   }
 }

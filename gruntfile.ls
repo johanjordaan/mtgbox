@@ -81,6 +81,13 @@ module.exports = (grunt) ->
           'trnggrid/trnggrid.css': 'trnggrid/release/trnggrid.min.css'
 
 
+          'angular-nvd3/d3.js':'d3/d3.min.js'
+          'angular-nvd3/nv.d3.js':'nvd3/build/nv.d3.js'
+
+          'angular-nvd3/angular-nvd3.js':'angular-nvd3/dist/angular-nvd3.min.js'
+          'angular-nvd3/nv.d3.css':'nvd3/build/nv.d3.min.css'
+
+
           # This has been added to avoid the browser error
           #
           'angular/angular.min.js.map': 'angular/angular.min.js.map'
