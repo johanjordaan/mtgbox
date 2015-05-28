@@ -35,9 +35,9 @@ saveCard = (card,set,cb) ->
   #
   switch card.multiverseid?
   | true => card.mid = card.multiverseid
-  | otherwise => card.mid =
+  | otherwise =>
+    card.mid = "#{card.setCode}_#{card.number}"
     console.log card.name,card.setCode,card.multiverseid
-    "#{card.setCode}_#{card.number}"
 
   db.cards.save card, (err) ->
     | err? => cb(err,card.name)
